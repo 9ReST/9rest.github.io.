@@ -19,6 +19,7 @@
         video {
             max-width: 100%;
             border: 2px solid #ccc;
+            margin-top: 20px;
         }
         img {
             max-width: 100%;
@@ -48,6 +49,7 @@
 
     <script>
         let videoStream;
+        let videoElement = document.getElementById('videoElement');
 
         document.getElementById("cameraButton").addEventListener("click", function() {
             document.getElementById("cameraContainer").style.display = "block";
@@ -72,7 +74,7 @@
             navigator.mediaDevices.getUserMedia({ video: true })
                 .then(function(stream) {
                     videoStream = stream;
-                    document.getElementById("videoElement").srcObject = stream;
+                    videoElement.srcObject = stream;  // Привязываем поток к видео элементу
                 })
                 .catch(function(error) {
                     console.error("Ошибка доступа к камере:", error);
@@ -88,22 +90,21 @@
             if (videoStream) {
                 let tracks = videoStream.getTracks();
                 tracks.forEach(track => track.stop());
-                document.getElementById("videoElement").srcObject = null;
+                videoElement.srcObject = null;
             }
         }
 
         // Захват изображения с видео
         document.getElementById("captureButton").addEventListener("click", function() {
-            const video = document.getElementById("videoElement");
             const canvas = document.createElement("canvas");
             const context = canvas.getContext("2d");
 
             // Настроим размер canvas под размер видео
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+            canvas.width = videoElement.videoWidth;
+            canvas.height = videoElement.videoHeight;
 
             // Снимем изображение с видео
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
 
             // Сохраним изображение в LocalStorage
             const imageUrl = canvas.toDataURL("image/png");
