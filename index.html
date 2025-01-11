@@ -40,6 +40,7 @@
         <video id="videoElement" autoplay playsinline></video>
         <button id="captureButton">Сделать фото</button>
         <button id="stopCameraButton">Остановить видео</button>
+        <button id="switchCameraButton">Переключить камеру</button>
     </div>
 
     <!-- Место для отображения картинки с камеры -->
@@ -49,7 +50,49 @@
 
     <script>
         let videoStream;
+        let currentStream;
         let videoElement = document.getElementById('videoElement');
+        let currentCamera = 0;  // 0 - фронтальная, 1 - задняя
+
+        // Функция для запуска камеры
+        async function startCamera() {
+            const constraints = {
+                video: {
+                    facingMode: currentCamera === 0 ? 'user' : 'environment' // user - фронтальная, environment - задняя
+                }
+            };
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                videoStream = stream;
+                videoElement.srcObject = stream;  // Привязываем поток к видео элементу
+                currentStream = stream;
+            } catch (error) {
+                console.error("Ошибка доступа к камере:", error);
+            }
+        }
+
+        // Функция для остановки камеры
+        function stopCamera() {
+            if (videoStream) {
+                let tracks = videoStream.getTracks();
+                tracks.forEach(track => track.stop());
+                videoElement.srcObject = null;
+            }
+        }
+
+        // Функция для переключения камеры
+        function switchCamera() {
+            if (currentStream) {
+                // Останавливаем текущий поток
+                let tracks = currentStream.getTracks();
+                tracks.forEach(track => track.stop());
+            }
+            
+            // Переключаем камеру
+            currentCamera = currentCamera === 0 ? 1 : 0;
+            startCamera();
+        }
 
         document.getElementById("cameraButton").addEventListener("click", function() {
             document.getElementById("cameraContainer").style.display = "block";
@@ -68,31 +111,6 @@
                 alert("Нет изображения для отображения!");
             }
         });
-
-        // Функция для запуска камеры
-        function startCamera() {
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(function(stream) {
-                    videoStream = stream;
-                    videoElement.srcObject = stream;  // Привязываем поток к видео элементу
-                })
-                .catch(function(error) {
-                    console.error("Ошибка доступа к камере:", error);
-                });
-        }
-
-        // Остановка видео
-        document.getElementById("stopCameraButton").addEventListener("click", function() {
-            stopCamera();
-        });
-
-        function stopCamera() {
-            if (videoStream) {
-                let tracks = videoStream.getTracks();
-                tracks.forEach(track => track.stop());
-                videoElement.srcObject = null;
-            }
-        }
 
         // Захват изображения с видео
         document.getElementById("captureButton").addEventListener("click", function() {
@@ -114,6 +132,16 @@
             document.getElementById("capturedImage").src = imageUrl;
 
             alert("Фото сохранено! Теперь можно нажать 'Принтер' для отображения.");
+        });
+
+        // Остановка видео
+        document.getElementById("stopCameraButton").addEventListener("click", function() {
+            stopCamera();
+        });
+
+        // Переключение камеры
+        document.getElementById("switchCameraButton").addEventListener("click", function() {
+            switchCamera();
         });
     </script>
 </body>
