@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сайт с камерой и принтером</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        button {
+            font-size: 20px;
+            padding: 10px 20px;
+            margin: 20px;
+            cursor: pointer;
+        }
+        video {
+            max-width: 100%;
+            border: 2px solid #ccc;
+        }
+        img {
+            max-width: 100%;
+            border: 2px solid #ccc;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Добро пожаловать на сайт!</h1>
+    
+    <button id="cameraButton">Камера</button>
+    <button id="printerButton">Принтер</button>
+
+    <!-- Место для видео с камеры -->
+    <div id="cameraContainer" style="display:none;">
+        <video id="videoElement" autoplay></video>
+        <button id="captureButton">Сделать фото</button>
+        <canvas id="canvas" style="display:none;"></canvas>
+    </div>
+
+    <!-- Место для отображения картинки с камеры -->
+    <div id="imageContainer" style="display:none;">
+        <img id="capturedImage" src="" alt="Captured Image">
+    </div>
+
+    <script>
+        document.getElementById("cameraButton").addEventListener("click", function() {
+            document.getElementById("cameraContainer").style.display = "block";
+            document.getElementById("imageContainer").style.display = "none";
+            startCamera();
+        });
+
+        document.getElementById("printerButton").addEventListener("click", function() {
+            document.getElementById("cameraContainer").style.display = "none";
+            document.getElementById("imageContainer").style.display = "block";
+            if (localStorage.getItem("capturedImage")) {
+                document.getElementById("capturedImage").src = localStorage.getItem("capturedImage");
+            } else {
+                alert("Нет изображения для отображения!");
+            }
+        });
+
+        function startCamera() {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    document.getElementById("videoElement").srcObject = stream;
+                })
+                .catch(function(error) {
+                    console.error("Ошибка доступа к камере:", error);
+                });
+        }
+
+        document.getElementById("captureButton").addEventListener("click", function() {
+            const video = document.getElementById("videoElement");
+            const canvas = document.getElementById("canvas");
+            const context = canvas.getContext("2d");
+
+            // Настроим размер canvas под размер видео
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            // Снимем изображение с видео
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Сохраним изображение в LocalStorage
+            const imageUrl = canvas.toDataURL("image/png");
+            localStorage.setItem("capturedImage", imageUrl);
+
+            // Отображаем фото на странице
+            document.getElementById("capturedImage").src = imageUrl;
+        });
+    </script>
+</body>
+</html>
