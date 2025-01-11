@@ -36,9 +36,8 @@
 
     <!-- Место для видео с камеры -->
     <div id="cameraContainer" style="display:none;">
-        <video id="videoElement" autoplay></video>
-        <button id="captureButton">Сделать фото</button>
-        <canvas id="canvas" style="display:none;"></canvas>
+        <video id="videoElement" autoplay playsinline></video>
+        <button id="stopCameraButton">Остановить видео</button>
     </div>
 
     <!-- Место для отображения картинки с камеры -->
@@ -47,6 +46,8 @@
     </div>
 
     <script>
+        let videoStream;
+
         document.getElementById("cameraButton").addEventListener("click", function() {
             document.getElementById("cameraContainer").style.display = "block";
             document.getElementById("imageContainer").style.display = "none";
@@ -66,6 +67,7 @@
         function startCamera() {
             navigator.mediaDevices.getUserMedia({ video: true })
                 .then(function(stream) {
+                    videoStream = stream;
                     document.getElementById("videoElement").srcObject = stream;
                 })
                 .catch(function(error) {
@@ -73,9 +75,22 @@
                 });
         }
 
-        document.getElementById("captureButton").addEventListener("click", function() {
+        document.getElementById("stopCameraButton").addEventListener("click", function() {
+            stopCamera();
+        });
+
+        function stopCamera() {
+            if (videoStream) {
+                let tracks = videoStream.getTracks();
+                tracks.forEach(track => track.stop());
+                document.getElementById("videoElement").srcObject = null;
+            }
+        }
+
+        // Преобразовать изображение в формат PNG и сохранить в LocalStorage
+        document.getElementById("captureButton")?.addEventListener("click", function() {
             const video = document.getElementById("videoElement");
-            const canvas = document.getElementById("canvas");
+            const canvas = document.createElement("canvas");
             const context = canvas.getContext("2d");
 
             // Настроим размер canvas под размер видео
